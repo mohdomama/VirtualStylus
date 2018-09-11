@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 from util import BackProjection as bp
 from math import sqrt, acos, degrees
+import math
 
 def contours(hist_mask_image):
     gray_hist_mask_image = cv2.cvtColor(hist_mask_image, cv2.COLOR_BGR2GRAY)
@@ -79,13 +80,14 @@ def main():
             hull = cv2.convexHull(rec, returnPoints = False)
 
             defects = cv2.convexityDefects(rec,hull)
-
+            count_defects = 0
             for i in range(defects.shape[0]):
                 s,e,f,d = defects[i,0]
                 start = tuple(rec[s][0])
                 end = tuple(rec[e][0])
                 far = tuple(rec[f][0])
 
+                '''
                 angle = cal_ang(start, end, far)
 
                 mid = (
@@ -98,6 +100,27 @@ def main():
 
                 if des > 70 and angle < 55:
                     cv2.circle(frame,far,5,[0,0,255],-1)
+                '''
+                # find length of all sides of triangle
+                a = math.sqrt((end[0] - start[0])**2 + (end[1] - start[1])**2)
+                b = math.sqrt((far[0] - start[0])**2 + (far[1] - start[1])**2)
+                c = math.sqrt((end[0] - far[0])**2 + (end[1] - far[1])**2)
+
+                # apply cosine rule here
+                angle = math.acos((b**2 + c**2 - a**2)/(2*b*c)) * 57
+
+                mid = (
+                    (start[0] + end[0])/2,
+                    (start[1] + end[1])/2,
+                    )
+                des = cal_des(mid, far)
+
+                # ignore angles > 90 and highlight rest with red dots
+                if angle <= 90 and des >= 60:
+                    count_defects += 1
+                    cv2.circle(frame, far, 5, (0,0,255), -1)
+                
+                cv2.line(frame,start, end, [0,255,0], 2)
 
 
             x,y,w,h = cv2.boundingRect(rec)
@@ -105,7 +128,7 @@ def main():
             cv2.rectangle(frame,(x,y),(x+w,y+h),(0,0,255),2)
             #cv2.drawContours(frame, [hull], 0, (0,255,0), 3)
 
-
+            cv2.putText(frame,str(count_defects+1), (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 2, 2)
             cv2.imshow('Display', mask)
             cv2.imshow('Display2', frame)
 

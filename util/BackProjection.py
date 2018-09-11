@@ -24,8 +24,10 @@ def back_proj_2D(hsvt, roi_hist, dim, target):
 	cv2.filter2D(dst,-1,disc,dst)
 
 	# threshold and binary AND
-	ret,thresh = cv2.threshold(dst,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+	ret,thresh = cv2.threshold(dst,175,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
 	thresh = cv2.merge((thresh,thresh,thresh))
+	#thresh = cv2.GaussianBlur(thresh, (35, 35), 0)
+
 	return thresh
 
 def back_proj_1D(hsvr, hsvt, dim, target):
@@ -67,6 +69,8 @@ def calculate(roi, target):
 
 	res = cv2.bitwise_and(res2D_0, res2D_1)
 	res = cv2.bitwise_and(res, res2D_2)
+
+
 
 	return res
 

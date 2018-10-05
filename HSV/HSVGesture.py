@@ -1,14 +1,16 @@
 import cv2
-import numpy as np
 from util import BackProjection as bp
 from math import sqrt, acos, degrees
 import math
 
+
 def contours(hist_mask_image):
     gray_hist_mask_image = cv2.cvtColor(hist_mask_image, cv2.COLOR_BGR2GRAY)
     ret, thresh = cv2.threshold(gray_hist_mask_image, 0, 255, 0)
-    _, cont, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    _, cont, hierarchy = cv2.findContours(
+        thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     return cont
+
 
 def max_contour(contours_list):
     max_area = 0
@@ -21,6 +23,7 @@ def max_contour(contours_list):
 
     return max_index, bound_rec
 
+
 def roi_extract(frame):
     roi_defined = False
     roi = None
@@ -28,7 +31,7 @@ def roi_extract(frame):
     x1, y1 = 100, 100
     x2, y2 = 200, 260
 
-    cv2.rectangle(frame, (x1,y1), (x2, y2), (255, 0, 0))
+    cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 0))
     cv2.imshow('Display', frame)
 
     if cv2.waitKey(5) & 0xFF == ord('c'):
@@ -37,21 +40,20 @@ def roi_extract(frame):
 
     return roi_defined, roi
 
+
 def cal_ang(start, end, far):
     A = cal_des(far, start)
     B = cal_des(far, end)
     C = cal_des(start, end)
 
-    return degrees(acos((A * A + B * B - C * C)/(2.0 * A * B)))
+    return degrees(acos((A * A + B * B - C * C) / (2.0 * A * B)))
 
 
 def cal_des(p1, p2):
-    return sqrt( 
-        (p1[0] - p2[0])**2 + 
-        (p1[1] - p2[1])**2 
-        )
-
-
+    return sqrt(
+        (p1[0] - p2[0])**2 +
+        (p1[1] - p2[1])**2
+    )
 
 
 def main():
@@ -62,27 +64,22 @@ def main():
     while True:
         _, frame = cap.read()
 
-        if roi_defined == False:
+        if not roi_defined:
             roi_defined, roi = roi_extract(frame)
 
-
         else:
-
             mask = bp.calculate(roi, frame)
-
-
             contours_list = contours(mask)
 
+            # find the biggest area
+            max_cont, rec = max_contour(contours_list)
 
-            #find the biggest area
-            max_cont ,rec = max_contour(contours_list)
+            hull = cv2.convexHull(rec, returnPoints=False)
 
-            hull = cv2.convexHull(rec, returnPoints = False)
-
-            defects = cv2.convexityDefects(rec,hull)
+            defects = cv2.convexityDefects(rec, hull)
             count_defects = 0
             for i in range(defects.shape[0]):
-                s,e,f,d = defects[i,0]
+                s, e, f, d = defects[i, 0]
                 start = tuple(rec[s][0])
                 end = tuple(rec[e][0])
                 far = tuple(rec[f][0])
@@ -107,35 +104,38 @@ def main():
                 c = math.sqrt((end[0] - far[0])**2 + (end[1] - far[1])**2)
 
                 # apply cosine rule here
-                angle = math.acos((b**2 + c**2 - a**2)/(2*b*c)) * 57
+                angle = math.acos(
+                    (b ** 2 + c ** 2 - a ** 2) / (2 * b * c)) * 57
 
                 mid = (
-                    (start[0] + end[0])/2,
-                    (start[1] + end[1])/2,
-                    )
+                    (start[0] + end[0]) / 2,
+                    (start[1] + end[1]) / 2,
+                )
                 des = cal_des(mid, far)
 
                 # ignore angles > 90 and highlight rest with red dots
                 if angle <= 90 and des >= 60:
                     count_defects += 1
-                    cv2.circle(frame, far, 5, (0,0,255), -1)
-                
-                cv2.line(frame,start, end, [0,255,0], 2)
+                    cv2.circle(frame, far, 5, (0, 0, 255), -1)
 
+                cv2.line(frame, start, end, [0, 255, 0], 2)
 
-            x,y,w,h = cv2.boundingRect(rec)
+            x, y, w, h = cv2.boundingRect(rec)
             # draw the book contour (in green)
-            cv2.rectangle(frame,(x,y),(x+w,y+h),(0,0,255),2)
-            #cv2.drawContours(frame, [hull], 0, (0,255,0), 3)
+            cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
+            # cv2.drawContours(frame, [hull], 0, (0,255,0), 3)
 
-            cv2.putText(frame,str(count_defects+1), (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 2, 2)
+            cv2.putText(
+                frame, str(count_defects + 1), (50, 50),
+                cv2.FONT_HERSHEY_SIMPLEX, 2, 2)
             cv2.imshow('Display', mask)
             cv2.imshow('Display2', frame)
 
         if cv2.waitKey(5) & 0xFF == ord('q'):
             break
-     
+
     cv2.destroyAllWindows()
+
 
 if __name__ == '__main__':
     main()

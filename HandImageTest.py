@@ -1,12 +1,13 @@
 import cv2
 import tensorflow as tf
 import os
-import time
+
 
 IMG_SIZE = 100
 model = tf.keras.models.load_model('TrainedModels/Hand-CNN-v2-CO.model')
 CATEGORIES = ['C', 'O']
 DATADIR = 'static/Test/'
+
 
 def get_label(img):
     # img = cv2.flip(img,1)
@@ -19,25 +20,24 @@ def get_label(img):
 
 
 def test(expect):
-    count  = 0
-    
+    count = 0
+
     print('Expecting: ' + expect)
     num = len(os.listdir(DATADIR + expect))
-    
+
     for name in (os.listdir(DATADIR + expect)):
         img = cv2.imread(DATADIR + expect + '/' + name)
         label = get_label(img)
 
-        #print(name + ' ' + label)
-        
+        # print(name + ' ' + label)
+
         if label == expect:
             count += 1
-    
-    print('Percentage: ' , count/num * 100)
+
+    print('Percentage: ', count / num * 100)
 
 
 def main():
-
     '''
     count = 0
     print('Testing for C:')
@@ -65,6 +65,6 @@ def main():
     test('C')
     test('O')
 
+
 if __name__ == '__main__':
     main()
-

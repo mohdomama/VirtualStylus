@@ -4,24 +4,17 @@ import os
 import time
 import numpy as np
 
+from util import SystemUtil
 from keras.utils.generic_utils import CustomObjectScope
 from keras.models import load_model
 from keras.applications.mobilenet import preprocess_input
-
-keras_dict = {
-    'relu6': keras.applications.mobilenet.relu6,
-    'DepthwiseConv2D': keras.applications.mobilenet.DepthwiseConv2D
-}
-
-with CustomObjectScope(keras_dict):
-    model = load_model('TrainedModels/Hand-mobilenet-v2.model')
 
 IMG_SIZE = 224
 CATEGORIES = ['C', 'O']
 
 
-def get_label(img):
-    # img = cv2.flip(img,1)
+def get_label(img, model):
+    # img = cv2.flip(img, 1)
     img = cv2.resize(img, (IMG_SIZE, IMG_SIZE))
     img = img[..., ::-1]
     img = img.astype('float32')
@@ -31,16 +24,30 @@ def get_label(img):
     return prediction[0], str(np.argmax(prediction[0]))
 
 
-def main():
+def run():
+    keras_dict = {
+        'relu6': keras.applications.mobilenet.relu6,
+        'DepthwiseConv2D': keras.applications.mobilenet.DepthwiseConv2D
+    }
+    with CustomObjectScope(keras_dict):
+        model = load_model('TrainedModels/Hand-mobilenet-v2.model')
+
     cap = cv2.VideoCapture(0)
+    util = SystemUtil.AudioUtility()
 
     while True:
         _, frame = cap.read()
         cv2.rectangle(frame, (20, 20), (320, 320), (255, 0, 0), 2)
 
         tic = time.time()
-        predictions, label = get_label(frame[20:320, 20:320])
+        predictions, label = get_label(frame[20:320, 20:320], model)
         toc = time.time()
+
+        if label == '5':
+            util.increaseVolume()
+
+        if label == '3':
+            util.decreaseVolume()
 
         cv2.putText(frame, label, (20, 390), cv2.FONT_HERSHEY_COMPLEX,
                     3.0, (0, 0, 255))
@@ -60,6 +67,10 @@ def main():
 
     cap.release()
     cv2.destroyAllWindows()
+
+
+def main():
+    run()
 
 
 if __name__ == '__main__':

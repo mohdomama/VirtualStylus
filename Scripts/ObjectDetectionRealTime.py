@@ -5,16 +5,17 @@ import numpy as np
 import tensorflow as tf
 
 from util.ObjectDetectionUtils import label_map_util
+from util.MotionUtil import Motion
 
 
-MODEL_NAME = 'gesture5'
+MODEL_NAME = 'gesture_fist_5'
 # Path to frozen detection graph. This is the actual model that is used for the object detection.
 PATH_TO_FROZEN_GRAPH ='TrainedModels/' + MODEL_NAME + '/inference_graph' + '/frozen_inference_graph.pb'
 
 # List of the strings that is used to add correct label for each box.
 PATH_TO_LABELS = 'TrainedModels/' + MODEL_NAME + '/class_map.pbtxt'
 
-ROW, COLUMN = 100, 100
+ROW, COLUMN = 224, 224
 
 def load_image_into_numpy_array(image):
   (im_width, im_height) = image.size
@@ -22,12 +23,9 @@ def load_image_into_numpy_array(image):
       (im_height, im_width, 3)).astype(np.uint8)
 
 
-def move_workspace(location):
-    command = "xte 'keydown Control_L' 'keydown Alt_L' 'keydown {}' 'keyup Control_L' 'keyup Alt_L' 'keyup {}'".format(location, location)
-    os.system(command)
-
 def run():
-    palm_pos = (-1, -1)
+    motion = Motion()
+    #palm_pos = (-1, -1)
     # Load Frozen model
     detection_graph = tf.Graph()
     with detection_graph.as_default():
@@ -76,10 +74,10 @@ def run():
                 output_dict['detection_boxes'] = output_dict['detection_boxes'][0][0]
                 output_dict['detection_scores'] = output_dict['detection_scores'][0][0]
 
-                os.system('clear')
+                #os.system('clear')
 
-                print('Detection Scores: ', output_dict['detection_scores'])
-                print('Detection Classes: ', output_dict['detection_classes'])
+                #print('Detection Scores: ', output_dict['detection_scores'])
+                #print('Detection Classes: ', output_dict['detection_classes'])
                 #print('Detection Boxes: ', output_dict['detection_boxes'])
 
                 if output_dict['detection_scores'] > 0.9:
@@ -87,32 +85,18 @@ def run():
                     x1 = int(output_dict['detection_boxes'][1] * frame.shape[1])
                     y2 = int(output_dict['detection_boxes'][2] * frame.shape[0])
                     x2 = int(output_dict['detection_boxes'][3] * frame.shape[1])
+
                     cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 4)
+                    gesture_name = 'Palm' if output_dict['detection_classes'] == 1 else 'Fist'
 
-                    new_pos = ((x1 + x2) / 2, (y1 + y2) / 2)
+                    cv2.putText(frame, gesture_name, (x1+15, y1+5), cv2.FONT_HERSHEY_SIMPLEX, 2.0, (0, 0, 255))
 
-                    pixels_thresh = 50
-                    if palm_pos != (-1, -1):
-                        if new_pos[0] - palm_pos[0] > pixels_thresh:
-                            move_workspace('Right')
-
-                        elif new_pos[0] - palm_pos[0] < -pixels_thresh:
-                            move_workspace('Left')
-
-                        if new_pos[1] - palm_pos[1] > pixels_thresh:
-                            move_workspace('Down')
-
-                        elif new_pos[1] - palm_pos[1] < -pixels_thresh:
-                            move_workspace('Up')
-
-                        palm_pos = new_pos
-
-
-                    else:
-                        palm_pos = new_pos
+                    new_pos = ((x1+x2)/2, (y1+y2)/2)
+                    motion.detect(new_pos,gesture_name)
 
                 else:
-                    palm_pos = (-1, -1)
+                    motion.clear_base()
+
 
                 cv2.imshow('frame', frame)
                 cv2.moveWindow('frame', 1000, 100)

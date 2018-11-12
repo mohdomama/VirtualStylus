@@ -1,0 +1,19 @@
+item {
+  id: 1
+  name: 'gesture5'
+}
+
+item {
+  id: 2
+  name: 'gestureFist'
+}
+
+item {
+  id: 3
+  name: 'gestureL'
+}
+
+item {
+  id: 4
+  name: 'gestureC'
+}

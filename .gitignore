@@ -104,7 +104,7 @@ venv.bak/
 .mypy_cache/
 
 tensorflow-for-poets-2/
-TrainedModels/
 Datasets/
 static/
 ObjectDetectionApi/
+TrainedModels/

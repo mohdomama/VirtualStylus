@@ -6,6 +6,7 @@ import tensorflow as tf
 
 from util.ObjectDetectionUtils import label_map_util
 from util.MotionUtil import Motion
+from util.CheckEnable import CheckEnable
 
 
 MODEL_NAME = 'gesture_fist_5_L_C'
@@ -39,6 +40,8 @@ def load_image_into_numpy_array(image):
 
 
 def run():
+    checkEnable = CheckEnable()
+    gesture_enabled = False
     motion = Motion()
     #palm_pos = (-1, -1)
     # Load Frozen model
@@ -109,15 +112,20 @@ def run():
                     cv2.putText(frame, CLASS_NAME[class_id] , (x1+15, y1+5), cv2.FONT_HERSHEY_DUPLEX, 2.0, (255, 255, 255))
 
                     new_pos = ((x1+x2)/2, (y1+y2)/2)
+
+                    gesture_enabled = checkEnable.check(CLASS_NAME[class_id])
                     
-                    # motion.detect(new_pos,CLASS_NAME[class_id])
+                    if gesture_enabled:
+                        motion.clear_gesture(CLASS_NAME[class_id])
+                        if CLASS_NAME[class_id] != 'Fist':
+                            motion.detect(new_pos,CLASS_NAME[class_id])
 
                 else:
                     motion.clear_base()
 
 
                 cv2.imshow('frame', frame)
-                cv2.moveWindow('frame', 1000, 100)
+                cv2.moveWindow('frame', 1200, 50)
 
                 if cv2.waitKey(5) & 0xFF == ord('q'):
                     break

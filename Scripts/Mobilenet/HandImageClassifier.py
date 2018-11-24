@@ -49,7 +49,7 @@ def run():
         if label == '3':
             util.decreaseVolume()
 
-        cv2.putText(frame, label, (20, 390), cv2.FONT_HERSHEY_COMPLEX,
+        cv2.putText(frame, label, (20, 300), cv2.FONT_HERSHEY_COMPLEX,
                     3.0, (0, 0, 255))
 
         os.system('clear')

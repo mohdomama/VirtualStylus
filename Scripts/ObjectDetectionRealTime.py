@@ -6,6 +6,7 @@ import tensorflow as tf
 
 from util.ObjectDetectionUtils import label_map_util
 from util.MotionUtil import Motion
+# from util.GameUtil import Motion
 from util.CheckEnable import CheckEnable
 
 
@@ -16,7 +17,7 @@ PATH_TO_FROZEN_GRAPH ='TrainedModels/' + MODEL_NAME + '/inference_graph' + '/fro
 # List of the strings that is used to add correct label for each box.
 PATH_TO_LABELS = 'TrainedModels/' + MODEL_NAME + '/class_map.pbtxt'
 
-ROW, COLUMN = 224, 224
+ROW, COLUMN = 640, 480
 
 CLASS_NAME = {
     1: 'Palm',
@@ -98,7 +99,7 @@ def run():
                 # print('Detection Classes: ', output_dict['detection_classes'])
                 # print('Detection Boxes: ', output_dict['detection_boxes'])
 
-                if output_dict['detection_scores'] > 0.85:
+                if output_dict['detection_scores'] > 0.9:
                     y1 = int(output_dict['detection_boxes'][0] * frame.shape[0])
                     x1 = int(output_dict['detection_boxes'][1] * frame.shape[1])
                     y2 = int(output_dict['detection_boxes'][2] * frame.shape[0])

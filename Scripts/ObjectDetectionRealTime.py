@@ -5,8 +5,8 @@ import numpy as np
 import tensorflow as tf
 
 from util.ObjectDetectionUtils import label_map_util
-from util.MotionUtil import Motion
-# from util.GameUtil import Motion
+# from util.MotionUtil import Motion
+from util.GameUtil import Motion
 from util.CheckEnable import CheckEnable
 
 

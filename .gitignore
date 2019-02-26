@@ -109,3 +109,4 @@ static/
 ObjectDetectionApi/
 TrainedModels/
 ObjectDetectionDatasets/
+*.mp4

@@ -11,4 +11,4 @@ We have used object detection techniques to create a hand gesture driven interfa
 - Numpy
 
 ### Here is a live demonstration of the project:-
-https://www.linkedin.com/feed/update/urn:li:activity:6503237803760017408
+[Live Demo](https://www.linkedin.com/feed/update/urn:li:activity:6503237803760017408)
